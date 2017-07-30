@@ -30,14 +30,14 @@ public class frmJurnal extends javax.swing.JFrame {
     public frmJurnal(Connection conn) {
         this.conn = conn;
         initComponents();
-        loadAllDatabase();
+//        loadAllDatabase();
         setLocationRelativeTo(null);
     }
 
     private void loadFromTill(Date from, Date till) {
         removeTableData();
         try {
-            String sql = "SELECT * FROM jurnal where tanggal between ? and ? ;";
+            String sql = "select * from jurnal where tanggal between ? and ?;";
             PreparedStatement pstatement = conn.prepareStatement(sql);
 
             java.sql.Date datefrom = new java.sql.Date(from.getTime());
@@ -106,6 +106,8 @@ public class frmJurnal extends javax.swing.JFrame {
                         rs.getDouble("debit"),
                         rs.getDouble("kredit"),};
                     tableModel.addRow(data);
+                    balanceDebit();
+                    balanceKredit();
                 }
             } else {
                 util.Sutil.msg(this, "Record Empty");
@@ -114,8 +116,6 @@ public class frmJurnal extends javax.swing.JFrame {
             rs.close();
             pstatement.close();
 
-            balanceDebit();
-            balanceKredit();
         } catch (SQLException ex) {
             Logger.getLogger(frmJurnal.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -259,25 +259,27 @@ public class frmJurnal extends javax.swing.JFrame {
     }
 
     private double balanceDebit() {
-        int i = 0;
         double debit = 0;
         if (tblJurnal.getRowCount() > 0) {
-            for (i = 0; i < tblJurnal.getRowCount(); i++) {
+            for (int i = 0; i < tblJurnal.getRowCount(); i++) {
                 debit += Double.valueOf(tblJurnal.getValueAt(i, 4).toString());
                 txtDebit.setText(String.valueOf(debit));
             }
+        } else {
+            txtDebit.setText(String.valueOf(debit));
         }
         return debit;
     }
 
     private double balanceKredit() {
-        int i = 0;
         double kredit = 0;
         if (tblJurnal.getRowCount() > 0) {
-            for (i = 0; i < tblJurnal.getRowCount(); i++) {
+            for (int i = 0; i < tblJurnal.getRowCount(); i++) {
                 kredit += Double.valueOf(tblJurnal.getValueAt(i, 5).toString());
                 txtKredit.setText(String.valueOf(kredit));
             }
+        } else {
+            txtKredit.setText(String.valueOf(kredit));
         }
         return kredit;
     }
