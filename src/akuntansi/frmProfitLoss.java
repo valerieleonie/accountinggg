@@ -49,28 +49,29 @@ public class frmProfitLoss extends javax.swing.JFrame {
 
                 String datet = sdf.format(dtcTill.getDate());
                 Date datetill = sdf.parse(datet);
-                
-                // sales
+
+//              Sales
                 loadSalesIncome(datefrom, datetill);
                 loadSalesDiscount(datefrom, datetill);
                 loadSalesReturn(datefrom, datetill);
-                loadOthersIncome(datefrom, datetill);
-                totalsales();
-                
-                //inventory
+                totalSalesRevenue();
+
+//                COGS
                 loadBeginningInventory(datefrom, datetill);
                 loadPurchasing(datefrom, datetill);
-                loadPurchasingReturn(datefrom, datetill);
-                loadEndingInventory(datefrom, datetill);
+                loadPurchasingDisc(datefrom, datetill);
                 totalCOGS();
-                grossProvit();
-                
-                //expenditure
+
+//                Expenditure
                 loadGeneralExpenditure(datefrom, datetill);
                 loadMarketingExpenditure(datefrom, datetill);
-                loadHumanResourceExpenditure(datefrom, datetill);
-                totalExpenditure();
-                netProvit();
+                loadHRExpenditure(datefrom, datetill);
+                totalExp();
+
+//                total
+                grossProfit();
+                netProfit();
+
             } else {
                 Sutil.mse(this, "Call your programmer ! =D , Good Luck !!!");
             }
@@ -81,384 +82,464 @@ public class frmProfitLoss extends javax.swing.JFrame {
 
     private void loadSalesIncome(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select SUM(j.kredit)-SUM(j.debit) as salesincome from jurnal j where chartno = 4010 and "
-                        + "tanggal between ? and ?;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+            String sql = "select ac.chartname, SUM(j.kredit)- SUM(j.debit) as salesincome from jurnal j inner join accountchart ac on "
+                    + "j.chartno = ac.chartno where j.chartno = 4010 and tanggal between ? and ?;  ";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int salesincome = rs.getInt("salesincome");
-                        txtSalesIncome.setText(String.valueOf(salesincome));
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) tblSalesRevenue.getModel();
 
+                    Object data[] = {
+                        rs.getString("chartname"),
+                        rs.getDouble("salesincome")
                     };
-                } else {
-                    util.Sutil.msg(this, "Record Empty");
+                    if (rs.getDouble("salesincome") == 0) {
+
+                    } else {
+                        tableModel.addRow(data);
+                    }
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                util.Sutil.msg(this, "Record Empty");
             }
+
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private void loadSalesDiscount(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select SUM(j.debit)-SUM(j.kredit) as salesdiscount from jurnal j where chartno = 4020 and "
-                        + "tanggal between ? and ?;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+            String sql = "select ac.chartname, SUM(j.debit)- SUM(j.kredit) as salesdiscount from jurnal j inner join accountchart ac on "
+                    + "j.chartno = ac.chartno where j.chartno = 4020 and tanggal between ? and ?;  ";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int salesdiscount = rs.getInt("salesdiscount");
-                        txtSalesDiscount.setText(String.valueOf(salesdiscount));
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) tblSalesRevenue.getModel();
 
+                    Object data[] = {
+                        rs.getString("chartname"),
+                        rs.getDouble("salesdiscount")
                     };
-                } else {
-                    util.Sutil.msg(this, "Record Empty");
+                    if (rs.getDouble("salesdiscount") == 0) {
+
+                    } else {
+                        tableModel.addRow(data);
+                    }
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                util.Sutil.msg(this, "Record Empty");
             }
+
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private void loadSalesReturn(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select SUM(j.debit)-SUM(j.kredit) as salesreturn from jurnal j where chartno = 4030 and "
-                        + "tanggal between ? and ?;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+            String sql = "select ac.chartname, SUM(j.debit)- SUM(j.kredit) as salesreturn from jurnal j inner join accountchart ac on "
+                    + "j.chartno = ac.chartno where j.chartno = 4030 and tanggal between ? and ?;  ";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int salesreturn = rs.getInt("salesreturn");
-                        txtSalesReturn.setText(String.valueOf(salesreturn));
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) tblSalesRevenue.getModel();
 
+                    Object data[] = {
+                        rs.getString("chartname"),
+                        rs.getDouble("salesreturn")
                     };
-                } else {
-                    util.Sutil.msg(this, "Record Empty");
+                    if (rs.getDouble("salesreturn") == 0) {
+
+                    } else {
+                        tableModel.addRow(data);
+                    }
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                util.Sutil.msg(this, "Record Empty");
             }
+
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private void loadOthersIncome(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select SUM(j.kredit)-SUM(j.debit) as othersincome from jurnal j where chartno = 7010 and "
-                        + "tanggal between ? and ?;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+            String sql = "select ac.chartname, SUM(j.debit)- SUM(j.kredit) as othersincome from jurnal j inner join accountchart ac on "
+                    + "j.chartno = ac.chartno where j.chartno = 7010 and tanggal between ? and ?;  ";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int othersincome = rs.getInt("othersincome");
-                        txtOthersIncome.setText(String.valueOf(othersincome));
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) tblSalesRevenue.getModel();
 
+                    Object data[] = {
+                        rs.getString("chartname"),
+                        rs.getDouble("othersincome")
                     };
-                } else {
-                    util.Sutil.msg(this, "Record Empty");
+                    if (rs.getDouble("othersincome") == 0) {
+
+                    } else {
+                        tableModel.addRow(data);
+                    }
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                util.Sutil.msg(this, "Record Empty");
             }
+
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void totalsales() {
-        int salesincome = Integer.parseInt(txtSalesIncome.getText());
-        int salesdiscount = Integer.parseInt(txtSalesDiscount.getText());
-        int salesreturn = Integer.parseInt(txtSalesReturn.getText());
-        int othersincome = Integer.parseInt(txtOthersIncome.getText());
-        int totalsales = salesincome + salesdiscount + salesreturn + othersincome;
-        txtTotalSales.setText(String.valueOf(totalsales));
+    private double totalSalesRevenue() {
+        double totalsalesrevenue = 0;
+        if (tblSalesRevenue.getRowCount() <= 0) {
+            txtSalesRevenue.setText(String.valueOf(totalsalesrevenue));
+        } else {
+            for (int i = 0; i < tblSalesRevenue.getRowCount(); i++) {
+                totalsalesrevenue += Double.valueOf(tblSalesRevenue.getValueAt(i, 1).toString());
+                txtSalesRevenue.setText(String.valueOf(totalsalesrevenue));
+            }
+
+        }
+        return totalsalesrevenue;
     }
 
     private void loadBeginningInventory(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select tb.opening as beginninginventory from trialbalance tb inner join"
-                        + " jurnal j on tb.chartno = j.chartno where tanggal between ? and ? and tb.chartno = 1040;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+            String sql = "select ac.chartname, tb.opening as beginninginventory from "
+                    + "accountchart ac inner join trialbalance tb on ac.chartno = tb.chartno "
+                    + "inner join jurnal j on tb.chartno = j.chartno "
+                    + "where j.tanggal between ? and ? and tb.chartno = 1040;  ";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int beginninginventory = rs.getInt("beginninginventory");
-                        txtBeginningInventory.setText(String.valueOf(beginninginventory));
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
 
-                    };
-                } else {
-                    txtBeginningInventory.setText("0");
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                DefaultTableModel tableModel = (DefaultTableModel) tblCOGS.getModel();
+                int opening = 0;
+                String chartname = "Beginning Inventory";
+                Object data[] = {
+                    chartname,
+                    opening
+                };
+                tableModel.addRow(data);
             }
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private void loadPurchasing(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select SUM(j.debit)-SUM(j.kredit) as purchasing from jurnal j where chartno = 5110 and "
-                        + "tanggal between ? and ?;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+            String sql = "select ac.chartname, SUM(j.debit)- SUM(j.kredit) as purchasing from jurnal j inner join "
+                    + "accountchart ac on j.chartno = ac.chartno where j.chartno = 5110 and tanggal between ? and ?;  ";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int purchasing = rs.getInt("purchasing");
-                        txtPurchasing.setText(String.valueOf(purchasing));
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) tblCOGS.getModel();
 
+                    Object data[] = {
+                        rs.getString("chartname"),
+                        rs.getDouble("purchasing")
                     };
-                } else {
-                    util.Sutil.msg(this, "Record Empty");
+                    if (rs.getDouble("purchasing") == 0) {
+
+                    } else {
+                        tableModel.addRow(data);
+                    }
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                util.Sutil.msg(this, "Record Empty");
             }
+
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void loadPurchasingReturn(Date from, Date till) {
+    private void loadPurchasingDisc(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select SUM(j.debit)-SUM(j.kredit) as purchasingreturn from jurnal j where chartno = 5130 and "
-                        + "tanggal between ? and ?;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+            String sql = "select ac.chartname, SUM(j.debit)- SUM(j.kredit) as purchasingdisc from jurnal j"
+                    + " inner join accountchart ac on j.chartno = ac.chartno where j.chartno = 5120 "
+                    + "and tanggal between ? and ?;  ";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int purchasingreturn = rs.getInt("purchasingreturn");
-                        txtPurchasingReturn.setText(String.valueOf(purchasingreturn));
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) tblSalesRevenue.getModel();
 
+                    Object data[] = {
+                        rs.getString("chartname"),
+                        rs.getDouble("purchasingdisc")
                     };
-                } else {
-                    util.Sutil.msg(this, "Record Empty");
+                    if (rs.getDouble("purchasingdisc") == 0) {
+
+                    } else {
+                        tableModel.addRow(data);
+                    }
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                util.Sutil.msg(this, "Record Empty");
             }
+
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private void loadEndingInventory(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select tb.ending as endinginventory from trialbalance tb inner join jurnal j on tb.chartno = j.chartno "
-                        + "where tanggal between ? and ? and tb.chartno = 1040;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+//            String sql = "select sum(stock * harga_beli) as value from stock ;";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            String sql = "select sum(j.kredit) as kredit, sum(j.debit) as debit, kredit - debit as valueending "
+                    + "from jurnal j where j.kredit = 4010 and j.debit = 5110 and tanggal between ? and ?";
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int endinginventory = rs.getInt("endinginventory");
-                        txtEndingInventory.setText(String.valueOf(endinginventory));
-
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) tblCOGS.getModel();
+                    String chartname = "Ending Inventory";
+                    Object data[] = {
+                        chartname,
+                        rs.getDouble("valueending")
                     };
-                } else {
-                    txtEndingInventory.setText("0");
+
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                Sutil.mse(this, "Record empty!");
             }
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void totalCOGS() {
-        int beginninginventory = Integer.parseInt(txtBeginningInventory.getText());
-        int purchasing = Integer.parseInt(txtPurchasing.getText());
-        int purchasingreturn = Integer.parseInt(txtPurchasingReturn.getText());
-//        int endinginventory = Integer.parseInt(txtEndingInventory.getText());
-        int totalCOGS = 0;
-        totalCOGS += beginninginventory + purchasing + purchasingreturn + endingvalue;
-        txtTotalCOGS.setText(String.valueOf(totalCOGS));
-    }
+    private double totalCOGS() {
+        double totalCOGS = 0;
+        if (tblCOGS.getRowCount() < 0) {
+            txtCOGS.setText(String.valueOf(totalCOGS));
+        } else {
+            for (int i = 0; i < tblCOGS.getRowCount(); i++) {
+                totalCOGS += Double.valueOf(tblCOGS.getValueAt(i, 1).toString());
+                txtCOGS.setText(String.valueOf(totalCOGS));
+            }
 
-    private void grossProvit() {
-        int salesrevenue = Integer.parseInt(txtTotalSales.getText());
-        int totalcogs = Integer.parseInt(txtTotalCOGS.getText());
-        int grossprovit = salesrevenue - totalcogs;
-        txtGrossProvit.setText(String.valueOf(grossprovit));
+        }
+        return totalCOGS;
     }
 
     private void loadGeneralExpenditure(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select SUM(j.debit)-SUM(j.kredit) as generalexpenditure from jurnal j where chartno = 6010 and tanggal "
-                        + "between ? and ?;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+            String sql = "select ac.chartname,SUM(j.debit)-SUM(j.kredit) as generalexpenditure from jurnal j inner join"
+                    + " accountchart ac on j.chartno = ac.chartno where j.chartno = 6010 and tanggal between ? and ?;  ";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int generalexpenditure = rs.getInt("generalexpenditure");
-                        txtGeneralExpenditure.setText(String.valueOf(generalexpenditure));
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) tblExpenditure.getModel();
 
+                    Object data[] = {
+                        rs.getString("chartname"),
+                        rs.getDouble("generalexpenditure")
                     };
-                } else {
-                    util.Sutil.msg(this, "Record Empty");
+                    tableModel.addRow(data);
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                util.Sutil.msg(this, "Record Empty");
             }
+
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private void loadMarketingExpenditure(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select SUM(j.debit)-SUM(j.kredit) as marketingexpenditure from jurnal j where chartno = 6020 and tanggal "
-                        + "between ? and ?;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+            String sql = "select ac.chartname,SUM(j.debit)-SUM(j.kredit) as marketingexpenditure from jurnal j inner join"
+                    + " accountchart ac on j.chartno = ac.chartno where j.chartno = 6020 and tanggal between ? and ?;  ";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int marketingexpenditure = rs.getInt("marketingexpenditure");
-                        txtMarketingExpenditure.setText(String.valueOf(marketingexpenditure));
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) tblExpenditure.getModel();
 
+                    Object data[] = {
+                        rs.getString("chartname"),
+                        rs.getDouble("marketingexpenditure")
                     };
-                } else {
-                    util.Sutil.msg(this, "Record Empty");
+                    tableModel.addRow(data);
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                util.Sutil.msg(this, "Record Empty");
             }
+
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void loadHumanResourceExpenditure(Date from, Date till) {
+    private void loadHRExpenditure(Date from, Date till) {
         try {
-            if (conn != null) {
-                String sql = "select SUM(j.debit)-SUM(j.kredit) as humanresourceexpenditure from jurnal j where chartno = 6030 and tanggal "
-                        + "between ? and ?;";
-                PreparedStatement pstatement = conn.prepareStatement(sql);
+            String sql = "select ac.chartname,SUM(j.debit)-SUM(j.kredit) as HRexpenditure from jurnal j inner join"
+                    + " accountchart ac on j.chartno = ac.chartno where j.chartno = 6010 and tanggal between ? and ?;  ";
 
-                java.sql.Date datefrom = new java.sql.Date(from.getTime());
-                java.sql.Date datetill = new java.sql.Date(till.getTime());
+            java.sql.Date datefrom = new java.sql.Date(from.getTime());
+            java.sql.Date datetill = new java.sql.Date(till.getTime());
 
-                pstatement.setDate(1, datefrom);
-                pstatement.setDate(2, datetill);
+            PreparedStatement pstatement = conn.prepareStatement(sql);
+            pstatement.setDate(1, datefrom);
+            pstatement.setDate(2, datetill);
 
-                ResultSet rs = pstatement.executeQuery();
-                if (rs.isBeforeFirst()) { // check is resultset not empty
-                    while (rs.next()) {
-                        int humanresourceexpenditure = rs.getInt("humanresourceexpenditure");
-                        txtHumanResourceExpenditure.setText(String.valueOf(humanresourceexpenditure));
+            ResultSet rs = pstatement.executeQuery();
+            if (rs.isBeforeFirst()) { // check is resultset not empty
+                while (rs.next()) {
+                    DefaultTableModel tableModel = (DefaultTableModel) tblExpenditure.getModel();
 
+                    Object data[] = {
+                        rs.getString("chartname"),
+                        rs.getDouble("HRexpenditure")
                     };
-                } else {
-                    util.Sutil.msg(this, "Record Empty");
+                    tableModel.addRow(data);
                 }
-                rs.close();
-                pstatement.close();
+            } else {
+                util.Sutil.msg(this, "Record Empty");
             }
+
+            rs.close();
+            pstatement.close();
         } catch (SQLException ex) {
-            Logger.getLogger(frmProfitLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void totalExpenditure() {
-        int ge = Integer.parseInt(txtGeneralExpenditure.getText());
-        int me = Integer.parseInt(txtMarketingExpenditure.getText());
-        int hre = Integer.parseInt(txtHumanResourceExpenditure.getText());
-        int totalexpenditure = ge + me + hre;
-        txtTotalExpenditure.setText(String.valueOf(totalexpenditure));
+    private double totalExp() {
+        double totalExp = 0;
+        if (tblExpenditure.getRowCount() < 0) {
+            txtExp.setText(String.valueOf(totalExp));
+        } else {
+            for (int i = 0; i < tblExpenditure.getRowCount(); i++) {
+                totalExp += Double.valueOf(tblExpenditure.getValueAt(i, 1).toString());
+                txtExp.setText(String.valueOf(totalExp));
+            }
+
+        }
+        return totalExp;
     }
 
-    private void netProvit() {
-        int grossprovit = Integer.parseInt(txtGrossProvit.getText());
-        int totalexpenditure = Integer.parseInt(txtTotalExpenditure.getText());
-        int netprovit = grossprovit - totalexpenditure;
-        txtNetProvit.setText(String.valueOf(netprovit));
+    private double grossProfit() {
+        double grossprofit = 0;
+        double totalSales = Double.valueOf(txtSalesRevenue.getText());
+        double totalCOGS = Double.valueOf(txtCOGS.getText());
+        grossprofit += totalSales - totalCOGS;
+        txtGrossProfit.setText(String.valueOf(grossprofit));
+        return grossprofit;
+    }
+
+    private double netProfit() {
+        double netprofit = 0;
+        double totalSales = Double.valueOf(txtSalesRevenue.getText());
+        double totalCOGS = Double.valueOf(txtCOGS.getText());
+        double totalExp = Double.valueOf(txtExp.getText());
+        netprofit += totalSales - totalCOGS - totalExp;
+        txtNet.setText(String.valueOf(netprofit));
+        return netprofit;
     }
 
     /**
@@ -475,117 +556,135 @@ public class frmProfitLoss extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         dtcFrom = new com.toedter.calendar.JDateChooser();
-        dtcTill = new com.toedter.calendar.JDateChooser();
         jLabel3 = new javax.swing.JLabel();
+        dtcTill = new com.toedter.calendar.JDateChooser();
+        btnFind = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblSalesRevenue = new javax.swing.JTable();
         jLabel4 = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        tblCOGS = new javax.swing.JTable();
         jLabel6 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
+        txtSalesRevenue = new javax.swing.JTextField();
+        txtCOGS = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
-        txtSalesIncome = new javax.swing.JTextField();
-        txtSalesDiscount = new javax.swing.JTextField();
-        txtSalesReturn = new javax.swing.JTextField();
-        txtOthersIncome = new javax.swing.JTextField();
+        txtGrossProfit = new javax.swing.JTextField();
         jLabel10 = new javax.swing.JLabel();
-        txtTotalSales = new javax.swing.JTextField();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        tblExpenditure = new javax.swing.JTable();
         jLabel11 = new javax.swing.JLabel();
+        txtExp = new javax.swing.JTextField();
         jLabel12 = new javax.swing.JLabel();
-        jLabel13 = new javax.swing.JLabel();
-        jLabel14 = new javax.swing.JLabel();
-        jLabel15 = new javax.swing.JLabel();
-        jLabel16 = new javax.swing.JLabel();
-        txtBeginningInventory = new javax.swing.JTextField();
-        txtPurchasing = new javax.swing.JTextField();
-        txtPurchasingReturn = new javax.swing.JTextField();
-        txtEndingInventory = new javax.swing.JTextField();
-        txtTotalCOGS = new javax.swing.JTextField();
-        jLabel17 = new javax.swing.JLabel();
-        txtGrossProvit = new javax.swing.JTextField();
-        jLabel18 = new javax.swing.JLabel();
-        jLabel19 = new javax.swing.JLabel();
-        jLabel20 = new javax.swing.JLabel();
-        jLabel21 = new javax.swing.JLabel();
-        txtGeneralExpenditure = new javax.swing.JTextField();
-        txtMarketingExpenditure = new javax.swing.JTextField();
-        txtHumanResourceExpenditure = new javax.swing.JTextField();
-        jLabel22 = new javax.swing.JLabel();
-        txtTotalExpenditure = new javax.swing.JTextField();
-        jLabel23 = new javax.swing.JLabel();
-        txtNetProvit = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        txtNet = new javax.swing.JTextField();
 
         jLabel5.setText("jLabel5");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        jLabel1.setText("Provit Loss");
+        jLabel1.setText("Profit Loss");
 
         jLabel2.setText("Period :");
 
         jLabel3.setText("-");
 
+        btnFind.setText("Find");
+        btnFind.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFindActionPerformed(evt);
+            }
+        });
+
+        tblSalesRevenue.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Chart Name", "Total"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        tblSalesRevenue.setShowHorizontalLines(false);
+        tblSalesRevenue.setShowVerticalLines(false);
+        jScrollPane1.setViewportView(tblSalesRevenue);
+
         jLabel4.setText("Sales Revenue");
 
-        jLabel6.setText("Sales Income");
+        tblCOGS.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
 
-        jLabel7.setText("Sales Discount");
+            },
+            new String [] {
+                "Chart Name", "Total"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
 
-        jLabel8.setText("Sales Return");
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
 
-        jLabel9.setText("Others Income");
-
-        txtSalesIncome.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtSalesIncomeActionPerformed(evt);
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
             }
         });
+        tblCOGS.setShowHorizontalLines(false);
+        tblCOGS.setShowVerticalLines(false);
+        jScrollPane2.setViewportView(tblCOGS);
 
-        jLabel10.setText("Total Sales Revenue");
+        jLabel6.setText("Cost of Goods Sold");
 
-        txtTotalSales.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtTotalSalesActionPerformed(evt);
+        jLabel7.setText("Total Sales Revenue :");
+
+        jLabel8.setText("Total COGS :");
+
+        jLabel9.setText("Gross Profit :");
+
+        jLabel10.setText("Operational Expenditure");
+
+        tblExpenditure.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Chart Name", "Total"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Double.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
             }
         });
+        tblExpenditure.setShowHorizontalLines(false);
+        tblExpenditure.setShowVerticalLines(false);
+        jScrollPane3.setViewportView(tblExpenditure);
 
-        jLabel11.setText("Beginning Inventory");
+        jLabel11.setText("Total Operational :");
 
-        jLabel12.setText("Cost of Goods Sold");
-
-        jLabel13.setText("Purchasing");
-
-        jLabel14.setText("Purchasing Return");
-
-        jLabel15.setText("Ending Inventory");
-
-        jLabel16.setText("Total COGS");
-
-        jLabel17.setText("Gross Provit");
-
-        jLabel18.setText("Operational Expenditure");
-
-        jLabel19.setText("General Expenditure");
-
-        jLabel20.setText("Marketing Expenditure");
-
-        jLabel21.setText("Human Resource Expenditure");
-
-        jLabel22.setText("Total Expenditure");
-
-        jLabel23.setText("Net Provit");
-
-        txtNetProvit.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtNetProvitActionPerformed(evt);
-            }
-        });
-
-        jButton1.setText("Find");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        jLabel12.setText("Net Provit :");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -595,219 +694,132 @@ public class frmProfitLoss extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel8)
-                                .addGap(26, 26, 26)
-                                .addComponent(txtSalesReturn))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel7)
-                                .addGap(18, 18, 18)
-                                .addComponent(txtSalesDiscount))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel6)
-                                .addGap(26, 26, 26)
-                                .addComponent(txtSalesIncome))
-                            .addComponent(jLabel4)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel10)
-                                .addGap(16, 16, 16)
-                                .addComponent(txtTotalSales))
-                            .addComponent(jLabel1)
-                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel2)
-                                .addGap(9, 9, 9)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(dtcFrom, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(dtcTill, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel9)
-                                .addGap(16, 16, 16)
-                                .addComponent(txtOthersIncome)))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(70, 70, 70)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel12)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addComponent(jLabel11)
-                                            .addComponent(jLabel13)
-                                            .addComponent(jLabel14)
-                                            .addComponent(jLabel15)
-                                            .addComponent(jLabel16))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                                .addComponent(txtEndingInventory, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 137, Short.MAX_VALUE)
-                                                .addComponent(txtTotalCOGS, javax.swing.GroupLayout.Alignment.TRAILING)
-                                                .addComponent(txtPurchasingReturn))
-                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                .addGap(0, 0, Short.MAX_VALUE)
-                                                .addComponent(txtBeginningInventory, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                            .addComponent(txtPurchasing))))
-                                .addGap(105, 105, 105))
+                                    .addComponent(jLabel7)
+                                    .addComponent(jLabel9))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(txtSalesRevenue, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
+                                    .addComponent(txtGrossProfit)
+                                    .addComponent(txtNet)))
+                            .addComponent(jLabel4)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(btnFind, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 241, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel6)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel17)
-                        .addGap(33, 33, 33)
-                        .addComponent(txtGrossProvit)
-                        .addGap(425, 425, 425))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel18)
-                            .addComponent(jLabel19)
-                            .addComponent(jLabel20)
-                            .addComponent(jLabel21)
-                            .addComponent(jLabel22)
-                            .addComponent(jLabel23))
+                                .addComponent(jLabel8)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtCOGS)))
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(txtNetProvit)
-                                .addGap(367, 367, 367))
+                                .addComponent(jLabel11)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtExp)
+                                .addGap(57, 57, 57))
                             .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(txtGeneralExpenditure, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE)
-                                    .addComponent(txtMarketingExpenditure)
-                                    .addComponent(txtHumanResourceExpenditure)
-                                    .addComponent(txtTotalExpenditure))
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel10)
+                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 241, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addContainerGap(46, Short.MAX_VALUE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel12)
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jLabel2)
-                        .addComponent(dtcFrom, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(dtcTill, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel3))
-                    .addComponent(jButton1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel3)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel2)
+                            .addComponent(dtcFrom, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(dtcTill, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnFind))
+                .addGap(15, 15, 15)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel4)
-                            .addComponent(jLabel12))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 11, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel6)
-                                    .addComponent(txtSalesIncome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel11))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel7)
-                                    .addComponent(txtSalesDiscount, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel13))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel8)
-                                    .addComponent(txtSalesReturn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel14))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel9)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(txtOthersIncome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel15)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel10)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(txtTotalSales, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel16))))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(txtBeginningInventory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(txtPurchasing, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(txtPurchasingReturn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(txtEndingInventory, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(txtTotalCOGS, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel17)
-                            .addComponent(txtGrossProvit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel18)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel19)
-                            .addComponent(txtGeneralExpenditure, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel20)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel21)
-                            .addComponent(txtHumanResourceExpenditure, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 171, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(txtMarketingExpenditure, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(26, 26, 26)))
+                        .addComponent(jLabel10)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel22)
-                    .addComponent(txtTotalExpenditure, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLabel7)
+                    .addComponent(txtSalesRevenue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel8)
+                    .addComponent(txtCOGS, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel11)
+                    .addComponent(txtExp, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9)
+                    .addComponent(txtGrossProfit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(txtNetProvit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel23))
-                .addContainerGap(79, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel12)
+                    .addComponent(txtNet, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(184, Short.MAX_VALUE))
         );
+
+        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jScrollPane1, jScrollPane2});
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void txtNetProvitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNetProvitActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtNetProvitActionPerformed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btnFindActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFindActionPerformed
         // TODO add your handling code here:
         executeOk();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_btnFindActionPerformed
 
-    private void txtSalesIncomeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSalesIncomeActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtSalesIncomeActionPerformed
-
-    private void txtTotalSalesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTotalSalesActionPerformed
-        // TODO add your handling code here:
-
-    }//GEN-LAST:event_txtTotalSalesActionPerformed
+//    private double endingInventory() {
+//        double endinginventory = 0;
+//        if(tblCOGS.getRowCount() > 0){
+//            for(int i = 0; i < tblCOGS.getRowCount();i++){
+//                endinginventory += Double.valueOf(tblCOGS.getValueAt(i, 1))
+//            }
+//            
+//        }
+//        return endinginventory;
+//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnFind;
     private com.toedter.calendar.JDateChooser dtcFrom;
     private com.toedter.calendar.JDateChooser dtcTill;
-    private javax.swing.JButton jButton1;
     private com.toedter.calendar.JDateChooser jDateChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
-    private javax.swing.JLabel jLabel17;
-    private javax.swing.JLabel jLabel18;
-    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel20;
-    private javax.swing.JLabel jLabel21;
-    private javax.swing.JLabel jLabel22;
-    private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -815,21 +827,16 @@ public class frmProfitLoss extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
-    private javax.swing.JTextField txtBeginningInventory;
-    private javax.swing.JTextField txtEndingInventory;
-    private javax.swing.JTextField txtGeneralExpenditure;
-    private javax.swing.JTextField txtGrossProvit;
-    private javax.swing.JTextField txtHumanResourceExpenditure;
-    private javax.swing.JTextField txtMarketingExpenditure;
-    private javax.swing.JTextField txtNetProvit;
-    private javax.swing.JTextField txtOthersIncome;
-    private javax.swing.JTextField txtPurchasing;
-    private javax.swing.JTextField txtPurchasingReturn;
-    private javax.swing.JTextField txtSalesDiscount;
-    private javax.swing.JTextField txtSalesIncome;
-    private javax.swing.JTextField txtSalesReturn;
-    private javax.swing.JTextField txtTotalCOGS;
-    private javax.swing.JTextField txtTotalExpenditure;
-    private javax.swing.JTextField txtTotalSales;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTable tblCOGS;
+    private javax.swing.JTable tblExpenditure;
+    private javax.swing.JTable tblSalesRevenue;
+    private javax.swing.JTextField txtCOGS;
+    private javax.swing.JTextField txtExp;
+    private javax.swing.JTextField txtGrossProfit;
+    private javax.swing.JTextField txtNet;
+    private javax.swing.JTextField txtSalesRevenue;
     // End of variables declaration//GEN-END:variables
 }

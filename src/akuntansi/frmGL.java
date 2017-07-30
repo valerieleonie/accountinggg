@@ -38,7 +38,7 @@ public class frmGL extends javax.swing.JFrame {
         removeTableData();
         try {
             String sql = "SELECT j.chartno, j.kode_jurnal, j.tanggal, j.debit, j.kredit, j.description, j.debit-j.kredit as balance "
-                    + "FROM jurnal j where tanggal between ? and ? and chartno = ?;";
+                    + "FROM jurnal j where tanggal between ? and ? and chartno = ? group by j.kode_jurnal;";
             PreparedStatement pstatement = conn.prepareStatement(sql);
 
             java.sql.Date datefrom = new java.sql.Date(from.getTime());

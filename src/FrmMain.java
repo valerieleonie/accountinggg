@@ -438,6 +438,12 @@ public class FrmMain extends javax.swing.JFrame {
             }
         });
 
+        txtPrice.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtPriceActionPerformed(evt);
+            }
+        });
+
         jLabel7.setText("Price");
 
         jLabel8.setText("Total");
@@ -476,6 +482,8 @@ public class FrmMain extends javax.swing.JFrame {
             }
         });
         tblMain.setColumnSelectionAllowed(true);
+        tblMain.setShowHorizontalLines(false);
+        tblMain.setShowVerticalLines(false);
         jScrollPane1.setViewportView(tblMain);
         tblMain.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
@@ -1039,7 +1047,7 @@ public class FrmMain extends javax.swing.JFrame {
 
     private void mniBalanceSheetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mniBalanceSheetActionPerformed
         // TODO add your handling code here:
-        akuntansi.frmBalanceSheet balancesheet = new akuntansi.frmBalanceSheet();
+        akuntansi.frmBalanceSheet balancesheet = new akuntansi.frmBalanceSheet(conn);
         balancesheet.setVisible(true);
     }//GEN-LAST:event_mniBalanceSheetActionPerformed
 
@@ -1108,6 +1116,10 @@ public class FrmMain extends javax.swing.JFrame {
         modal.frmModal modal = new modal.frmModal(conn);
         modal.setVisible(true);
     }//GEN-LAST:event_mniModalActionPerformed
+
+    private void txtPriceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtPriceActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtPriceActionPerformed
 
     private void executeOk() {
         int qty = Integer.parseInt(txtQty.getText());

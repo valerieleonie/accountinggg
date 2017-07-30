@@ -892,6 +892,7 @@ public class FrmPurchase extends javax.swing.JFrame {
             SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
             String date = sdf.format(dtcDate.getDate());
             Date date1 = sdf.parse(date);
+            
 
             // -- jurnal -- //
             int nochartpurchase = 5110;
