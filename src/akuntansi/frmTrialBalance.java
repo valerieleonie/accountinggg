@@ -37,9 +37,9 @@ public class frmTrialBalance extends javax.swing.JFrame {
     private void load(Date from, Date till) {
         removeTableData();
         try {
-            String sql = "select j.chartno, ac.chartname, tb.opening, j.debit, j.kredit, j.debit-j.kredit as ending from jurnal j "
-                    + "inner join accountchart ac on j.chartno = ac.chartno inner join trialbalance tb on j.chartno = tb.chartno "
-                    + "where j.tanggal between ? and ? ; ";
+            String sql = "select j.chartno, ac.chartname, sum(tb.opening) as opening, sum(j.debit) as debit, sum(j.kredit) as kredit, "
+                    + "sum(j.debit-j.kredit) as ending from jurnal j inner join accountchart ac on j.chartno = ac.chartno "
+                    + "inner join trialbalance tb on j.chartno = tb.chartno where j.tanggal between ? and ? group by j.chartno;";
 
             PreparedStatement pstatement = conn.prepareStatement(sql);
 
@@ -57,9 +57,9 @@ public class frmTrialBalance extends javax.swing.JFrame {
                     Object data[] = {
                         rs.getInt("j.chartno"),
                         rs.getString("ac.chartname"),
-                        rs.getInt("tb.opening"),
-                        rs.getDouble("j.debit"),
-                        rs.getDouble("j.kredit"),
+                        rs.getInt("opening"),
+                        rs.getDouble("debit"),
+                        rs.getDouble("kredit"),
                         rs.getInt("ending")
                     };
                     tableModel.addRow(data);
@@ -225,6 +225,8 @@ public class frmTrialBalance extends javax.swing.JFrame {
             }
         });
         tblTrialBalance.setColumnSelectionAllowed(true);
+        tblTrialBalance.setShowHorizontalLines(false);
+        tblTrialBalance.setShowVerticalLines(false);
         jScrollPane1.setViewportView(tblTrialBalance);
         tblTrialBalance.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
@@ -242,6 +244,12 @@ public class frmTrialBalance extends javax.swing.JFrame {
         jLabel5.setText("Total Kredit");
 
         jLabel6.setText("Total Ending");
+
+        txtTotalEnding.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtTotalEndingActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -311,6 +319,7 @@ public class frmTrialBalance extends javax.swing.JFrame {
 
     private void btnFindActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFindActionPerformed
         // TODO add your handling code here:
+
         try {
             if (dtcFrom.getDate() == null || dtcTill.getDate() == null) {
                 Sutil.mse(this, "Pilih tanggal !");
@@ -324,35 +333,43 @@ public class frmTrialBalance extends javax.swing.JFrame {
                 Date datetill = sdf.parse(datet);
 
                 load(datefrom, datetill);
+                totalOpening();
+                totaldebit();
+                totalkredit();
+                totalEnding();
             } else {
                 Sutil.mse(this, "Call your programmer ! =D , Good Luck !!!");
             }
         } catch (ParseException ex) {
             Logger.getLogger(frmGL.class.getName()).log(Level.SEVERE, null, ex);
         }
-        totalOpening();
-        totaldebit();
-        totalkredit();
-        totalEnding();
+
     }//GEN-LAST:event_btnFindActionPerformed
+
+    private void txtTotalEndingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtTotalEndingActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtTotalEndingActionPerformed
 
     private int totalOpening() {
         int opening = 0;
         for (int i = 0; i < tblTrialBalance.getRowCount(); i++) {
             opening += Integer.parseInt(tblTrialBalance.getValueAt(i, 2).toString());
             txtTotalOpening.setText(String.valueOf(opening));
-        }   
+        }
         return opening;
     }
 
-    private int totalEnding() {
+    public int totalEnding() {
         int ending = 0;
         for (int i = 0; i < tblTrialBalance.getRowCount(); i++) {
             ending += Integer.parseInt(tblTrialBalance.getValueAt(i, 5).toString());
             txtTotalEnding.setText(String.valueOf(ending));
-        }   
+        }
         return ending;
     }
+
+
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnFind;
@@ -367,7 +384,7 @@ public class frmTrialBalance extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tblTrialBalance;
     private javax.swing.JTextField txtTotalDebit;
-    private javax.swing.JTextField txtTotalEnding;
+    public static javax.swing.JTextField txtTotalEnding;
     private javax.swing.JTextField txtTotalKredit;
     private javax.swing.JTextField txtTotalOpening;
     // End of variables declaration//GEN-END:variables
